@@ -1,0 +1,37 @@
+@import './styles/theme.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  color-scheme: light;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  font-family:
+    'Noto Sans SC',
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif;
+  background: var(--color-page-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.font-display {
+  font-family: 'Bricolage Grotesque', 'Noto Sans SC', system-ui, sans-serif;
+  font-optical-sizing: auto;
+}
+
+#app {
+  height: 100%;
+  min-height: 100%;
+}
