@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { clearMenuRoutes, firstDynamicMenuPath, registerMenuRoutes } from './dynamic-routes'
+import { getToken } from '@/utils/session'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -48,7 +50,7 @@ export function resetDynamicRoutes() {
 }
 
 router.beforeEach(async (to, _from, next) => {
-  const token = localStorage.getItem('token')
+  const token = getToken()
   if (to.meta.public) {
     if (token && to.path === '/login') {
       next('/')
@@ -73,10 +75,15 @@ router.beforeEach(async (to, _from, next) => {
       dynamicRoutesReady = true
       // 刷新时 to 会先命中 global-not-found，不能 next({ ...to })，否则会一直带着错误的 name
       next({ path: to.path, query: to.query, hash: to.hash, replace: true })
-    } catch {
+    } catch (e) {
       const { useUserStore } = await import('@/stores/user')
+      const { useTabsStore } = await import('@/stores/tabs')
+      const msg = (e as Error).message || ''
+      if (msg.includes('禁用')) {
+        ElMessage.warning('账号已禁用，请重新登录')
+      }
       useUserStore().clear()
-      resetDynamicRoutes()
+      useTabsStore().clear()
       next({ path: '/login', query: { redirect: to.fullPath } })
     }
     return

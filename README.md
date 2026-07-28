@@ -2,15 +2,16 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Vue](https://img.shields.io/badge/Vue-3.5-4FC08D?logo=vue.js)](package.json)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript)](package.json)
 
-基于 **Vue 3 + TypeScript + Vite + Element Plus** 的后台管理前端，与后端 [gin-api-admin](https://github.com/xing-zr/gin-api-admin) 配套使用。支持 JWT 登录、动态菜单路由、按钮级权限指令及完整的系统管理页面。
+基于 **Vue 3 + TypeScript + Vite + Element Plus** 的后台管理前端，与后端 [gin-api-admin](https://github.com/xing-zr/gin-api-admin) 配套使用。支持 JWT 登录、Refresh Token 自动续期、动态菜单路由、按钮级权限指令及完整的系统管理页面。
 
 ## 项目特性
 
 - **Vue 3 Composition API**：`<script setup>` + TypeScript
 - **动态路由**：登录后根据后端菜单树注册页面路由
 - **权限控制**：路由守卫 + `v-permission` 指令（按钮级）
+- **会话管理**：Access / Refresh Token；401 自动刷新；退出调用注销接口
 - **布局组件**：侧边栏、顶栏、多标签页（Tabs）
 - **系统管理**：用户、角色、菜单、部门、权限
 - **日志查看**：登录日志、操作日志、运行日志
@@ -28,11 +29,11 @@
 
 | 类别 | 技术 |
 |------|------|
-| 框架 | Vue 3、Vue Router 4 |
-| 语言 | TypeScript |
-| 构建 | Vite 5 |
+| 框架 | Vue 3、Vue Router 5 |
+| 语言 | TypeScript 6 |
+| 构建 | Vite 8 |
 | UI | Element Plus、@element-plus/icons-vue |
-| 状态 | Pinia |
+| 状态 | Pinia 4 |
 | HTTP | Axios |
 | 图表 | ECharts 6 |
 
@@ -101,9 +102,23 @@ npm run dev
 
 ## 开发配置
 
-### API 代理
+### API 地址
 
-开发环境在 `vite.config.ts` 中将 `/api` 代理到后端：
+开发环境默认通过 Vite 代理访问 `/api`。若前后端分离部署，可复制环境变量示例：
+
+```bash
+cp .env.example .env.production
+```
+
+在 `.env.production` 中设置：
+
+```env
+VITE_API_BASE_URL=https://your-api.example.com/api
+```
+
+### API 代理（本地开发）
+
+`vite.config.ts` 中将 `/api` 代理到后端：
 
 ```typescript
 server: {
@@ -144,13 +159,14 @@ admin-web/
 │   ├── layouts/            # 布局（MainLayout）
 │   ├── router/             # 路由与动态菜单注册
 │   ├── stores/             # Pinia（user、tabs）
-│   ├── utils/              # 工具（menu、permission）
+│   ├── utils/              # 工具（session、menu、permission）
 │   ├── views/              # 页面组件
 │   │   ├── Login.vue
 │   │   ├── Dashboard.vue
 │   │   └── system/         # 系统管理各模块
 │   ├── App.vue
 │   └── main.ts
+├── .env.example            # 环境变量示例
 ├── index.html
 ├── vite.config.ts
 ├── tsconfig.json
@@ -174,6 +190,7 @@ location /api/ {
     proxy_pass http://127.0.0.1:9801;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
 
 location / {
@@ -182,7 +199,9 @@ location / {
 }
 ```
 
-4. 确保后端 CORS 或同域代理配置正确，避免跨域问题。
+4. 同域部署时可不设置 `VITE_API_BASE_URL`（默认 `/api`）；跨域部署时在构建前配置 `.env.production`。
+
+5. 后端若需记录真实客户端 IP，请在 `config.yaml` 中配置 `trusted_proxies`（见后端 README）。
 
 ## 参与贡献
 

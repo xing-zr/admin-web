@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus'
 import { Key, User, Lock } from '@element-plus/icons-vue'
 import { fetchCaptcha, login } from '@/api/auth'
 import { useUserStore } from '@/stores/user'
+import { safeRedirectPath, setRefreshToken, setToken } from '@/utils/session'
 
 const router = useRouter()
 const route = useRoute()
@@ -14,8 +15,8 @@ const captchaLoading = ref(false)
 const captchaImage = ref('')
 
 const form = reactive({
-  username: 'admin',
-  password: 'admin123',
+  username: '',
+  password: '',
   captchaId: '',
   captchaCode: '',
 })
@@ -43,9 +44,12 @@ async function onSubmit() {
   loading.value = true
   try {
     const data = await login(form.username, form.password, form.captchaId, form.captchaCode.trim())
-    localStorage.setItem('token', data.token)
+    setToken(data.token)
+    if (data.refreshToken) {
+      setRefreshToken(data.refreshToken)
+    }
     userStore.setFromLogin(data.user, data.menus, data.permissions ?? [], data.superAdmin ?? false)
-    const redirect = (route.query.redirect as string) || '/'
+    const redirect = safeRedirectPath(route.query.redirect)
     router.replace(redirect)
   } catch (e) {
     ElMessage.error((e as Error).message)

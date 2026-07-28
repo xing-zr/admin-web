@@ -23,6 +23,7 @@ export interface LoginUser {
 
 export interface LoginResult {
   token: string
+  refreshToken?: string
   user: LoginUser
   menus: MenuTree[]
   permissions: string[]

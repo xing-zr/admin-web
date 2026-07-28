@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Document } from '@element-plus/icons-vue'
 import { onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import type { HttpError } from '@/api/http'
 import type { OpLog } from '@/api/types'
 import * as api from '@/api/admin'
 
@@ -37,6 +39,11 @@ async function load() {
     })
     list.value = res.list
     total.value = res.total
+  } catch (e) {
+    const err = e as HttpError
+    if (!err.handled) {
+      ElMessage.error(err.message || '加载失败')
+    }
   } finally {
     loading.value = false
   }
@@ -59,21 +66,23 @@ onMounted(load)
 <template>
   <div class="page-shell">
     <el-card class="surface-card surface-card--table" shadow="never">
-      <el-form inline class="toolbar" @submit.prevent>
-        <el-form-item label="关键词">
-          <el-input
-            v-model="query.keyword"
-            clearable
-            placeholder="用户名 / 路径 / 方法"
-            @keyup.enter="load"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="() => { query.page = 1; load() }">查询</el-button>
-        </el-form-item>
-      </el-form>
+      <div class="table-toolbar">
+        <el-form inline @submit.prevent>
+          <el-form-item label="关键词">
+            <el-input
+              v-model="query.keyword"
+              clearable
+              placeholder="用户名 / 路径 / 方法"
+              @keyup.enter="load"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="() => { query.page = 1; load() }">查询</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
 
-      <el-table v-loading="loading" :data="list" border stripe style="width: 100%">
+      <el-table v-loading="loading" :data="list" stripe style="width: 100%">
         <el-table-column prop="id" label="ID" width="72" />
         <el-table-column prop="username" label="操作人" width="100" show-overflow-tooltip />
         <el-table-column prop="method" label="方法" width="90" />
@@ -132,10 +141,6 @@ onMounted(load)
 </template>
 
 <style scoped>
-.toolbar {
-  margin-bottom: 0;
-}
-
 .body-trigger {
   display: inline-flex;
   align-items: center;

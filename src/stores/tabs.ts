@@ -46,5 +46,9 @@ export const useTabsStore = defineStore('tabs', () => {
     return next?.path ?? '/'
   }
 
-  return { tabs, addTab, removeTab, normalizePath }
+  function clear() {
+    tabs.value = []
+  }
+
+  return { tabs, addTab, removeTab, clear, normalizePath }
 })

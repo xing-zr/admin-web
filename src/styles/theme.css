@@ -128,6 +128,15 @@
     transform 0.35s var(--ease-out),
     border-color 0.25s ease;
   overflow: hidden;
+  /* EP 2.14+ 默认 flex 卡片会让 body 撑满视口，列表页改回内容高度 */
+  display: block;
+  height: auto;
+}
+
+.page-shell .surface-card .el-card__body {
+  flex-grow: unset;
+  overflow: visible;
+  height: auto;
 }
 
 .page-shell .surface-card:not(.el-card) {
@@ -139,16 +148,17 @@
   border-color: rgba(29, 78, 216, 0.22);
 }
 
-.page-shell .surface-card :deep(.el-card__body) {
+.page-shell .surface-card .el-card__body {
   padding: 20px 22px;
 }
 
 /* 列表表格卡片：顶栏留白，表格横向铺满 */
-.page-shell .surface-card--table :deep(.el-card__body) {
+.page-shell .surface-card--table .el-card__body {
   padding: 0;
 }
 
-.page-shell .surface-card--table .table-toolbar {
+.page-shell .surface-card--table .table-toolbar,
+.page-shell .surface-card--table .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -156,11 +166,13 @@
   padding: 18px 22px 14px;
 }
 
-.page-shell .surface-card--table .table-toolbar .el-form {
+.page-shell .surface-card--table .table-toolbar .el-form,
+.page-shell .surface-card--table .toolbar.el-form {
   margin-bottom: 0;
 }
 
-.page-shell .surface-card--table .table-toolbar .el-form-item {
+.page-shell .surface-card--table .table-toolbar .el-form-item,
+.page-shell .surface-card--table .toolbar .el-form-item {
   margin-bottom: 0;
 }
 

@@ -6,6 +6,7 @@ import { ArrowDown, Close, Expand, Fold, Grid, Search, Setting } from '@element-
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { useTabsStore } from '@/stores/tabs'
+import { logout as logoutApi } from '@/api/auth'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,26 +41,24 @@ watch(
   { immediate: true },
 )
 
-onMounted(async () => {
-  if (localStorage.getItem(ASIDE_COLLAPSE_KEY) === '1') {
-    asideCollapsed.value = true
-  }
-  if (!userStore.loaded) {
-    try {
-      await userStore.loadProfile()
-    } catch {
-      userStore.clear()
-      router.push('/login')
-    }
-  }
-})
-
 watch(asideCollapsed, (v) => {
   localStorage.setItem(ASIDE_COLLAPSE_KEY, v ? '1' : '0')
 })
 
-function logout() {
+onMounted(() => {
+  if (localStorage.getItem(ASIDE_COLLAPSE_KEY) === '1') {
+    asideCollapsed.value = true
+  }
+})
+
+async function logout() {
+  try {
+    await logoutApi()
+  } catch {
+    // 网络失败仍清理本地会话
+  }
   userStore.clear()
+  tabsStore.clear()
   router.push('/login')
 }
 

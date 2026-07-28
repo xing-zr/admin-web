@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import type { HttpError } from '@/api/http'
 import type { LoginLog } from '@/api/types'
 import * as api from '@/api/admin'
 
@@ -24,6 +26,11 @@ async function load() {
     })
     list.value = res.list
     total.value = res.total
+  } catch (e) {
+    const err = e as HttpError
+    if (!err.handled) {
+      ElMessage.error(err.message || '加载失败')
+    }
   } finally {
     loading.value = false
   }
@@ -44,22 +51,24 @@ onMounted(load)
 <template>
   <div class="page-shell">
     <el-card class="surface-card surface-card--table" shadow="never">
-      <el-form inline class="toolbar" @submit.prevent>
-        <el-form-item label="用户名">
-          <el-input v-model="query.keyword" clearable placeholder="模糊搜索" @keyup.enter="load" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="query.status" clearable placeholder="全部" style="width: 120px">
-            <el-option label="成功" value="1" />
-            <el-option label="失败" value="0" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="() => { query.page = 1; load() }">查询</el-button>
-        </el-form-item>
-      </el-form>
+      <div class="table-toolbar">
+        <el-form inline @submit.prevent>
+          <el-form-item label="用户名">
+            <el-input v-model="query.keyword" clearable placeholder="模糊搜索" @keyup.enter="load" />
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select v-model="query.status" clearable placeholder="全部" style="width: 120px">
+              <el-option label="成功" value="1" />
+              <el-option label="失败" value="0" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="() => { query.page = 1; load() }">查询</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
 
-      <el-table v-loading="loading" :data="list" border stripe style="width: 100%">
+      <el-table v-loading="loading" :data="list" stripe style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="username" label="用户名" width="120" show-overflow-tooltip />
         <el-table-column prop="adminUserId" label="用户ID" width="90" />
@@ -95,9 +104,3 @@ onMounted(load)
     </el-card>
   </div>
 </template>
-
-<style scoped>
-.toolbar {
-  margin-bottom: 0;
-}
-</style>

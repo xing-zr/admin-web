@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { profile } from '@/api/auth'
 import type { LoginUser, MenuTree } from '@/api/types'
 import { resetDynamicRoutes } from '@/router'
+import { clearAuthStorage } from '@/utils/session'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -36,11 +37,15 @@ export const useUserStore = defineStore('user', {
       this.permissions = []
       this.superAdmin = false
       this.loaded = false
-      localStorage.removeItem('token')
+      clearAuthStorage()
       resetDynamicRoutes()
     },
     async loadProfile() {
       const data = await profile()
+      if (data.user.status !== 1) {
+        this.clear()
+        throw new Error('账号已禁用')
+      }
       this.user = data.user
       this.menus = data.menus
       this.permissions = data.permissions ?? []

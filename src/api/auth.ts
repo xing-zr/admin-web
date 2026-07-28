@@ -1,5 +1,6 @@
 import http from './http'
 import type { LoginResult } from './types'
+import { getRefreshToken } from '@/utils/session'
 
 export async function fetchCaptcha() {
   const res = await http.get('/auth/captcha')
@@ -19,4 +20,15 @@ export async function login(
 export async function profile() {
   const res = await http.get('/auth/profile')
   return res.data as LoginResult
+}
+
+export async function refreshToken(refreshToken: string) {
+  const res = await http.post('/auth/refresh', { refreshToken })
+  return res.data as LoginResult
+}
+
+export async function logout(refreshToken?: string) {
+  await http.post('/auth/logout', {
+    refreshToken: refreshToken ?? getRefreshToken() ?? '',
+  })
 }
