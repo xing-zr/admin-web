@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { clearMenuRoutes, firstDynamicMenuPath, registerMenuRoutes } from './dynamic-routes'
 import { getToken } from '@/utils/session'
@@ -30,6 +30,12 @@ const router = createRouter({
           component: () => import('@/views/NotFound.vue'),
           meta: { title: '页面不存在', notFound: true },
         },
+        {
+          path: 'profile',
+          name: 'profile',
+          component: () => import('@/views/Profile.vue'),
+          meta: { title: '个人中心' },
+        },
       ],
     },
     /** 未匹配到 /login、/ 主布局时的兜底（非 public：未登录先跳转登录，避免抢在动态路由注册之前命中） */
@@ -47,6 +53,23 @@ let dynamicRoutesReady = false
 export function resetDynamicRoutes() {
   clearMenuRoutes(router)
   dynamicRoutesReady = false
+}
+
+/** 路由 meta.perms 校验：无 perms 或静态页放行；有 perms 则要求用户具备对应权限码 */
+function routePermAllowed(
+  to: RouteLocationNormalized,
+  opts: { superAdmin: boolean; hasPerm: (code: string) => boolean; hasAnyPerm: (...codes: string[]) => boolean },
+): boolean {
+  if (opts.superAdmin) return true
+  if (to.meta.notFound || to.path === '/403' || to.path === '/profile') return true
+
+  const raw = to.meta.perms
+  if (typeof raw !== 'string' || !raw.trim()) return true
+
+  const codes = raw.split(',').map((s) => s.trim()).filter(Boolean)
+  if (codes.length === 0) return true
+  if (codes.length === 1) return opts.hasPerm(codes[0])
+  return opts.hasAnyPerm(...codes)
 }
 
 router.beforeEach(async (to, _from, next) => {
@@ -94,6 +117,13 @@ router.beforeEach(async (to, _from, next) => {
     let target = firstDynamicMenuPath(useUserStore().menus) ?? '/403'
     if (target === '/') target = '/403'
     next({ path: target, replace: true })
+    return
+  }
+
+  const { useUserStore } = await import('@/stores/user')
+  const userStore = useUserStore()
+  if (!routePermAllowed(to, userStore)) {
+    next('/403')
     return
   }
 

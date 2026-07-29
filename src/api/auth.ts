@@ -32,3 +32,7 @@ export async function logout(refreshToken?: string) {
     refreshToken: refreshToken ?? getRefreshToken() ?? '',
   })
 }
+
+export async function changePassword(oldPassword: string, newPassword: string) {
+  await http.put('/auth/password', { oldPassword, newPassword })
+}

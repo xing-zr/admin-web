@@ -63,6 +63,7 @@ async function logout() {
 }
 
 function onUserCommand(cmd: string) {
+  if (cmd === 'profile') router.push('/profile')
   if (cmd === 'logout') logout()
 }
 
@@ -174,6 +175,7 @@ function onSettingsClick() {
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="profile">个人中心</el-dropdown-item>
                   <el-dropdown-item command="logout">退出登录</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
